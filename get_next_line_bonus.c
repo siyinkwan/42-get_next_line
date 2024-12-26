@@ -1,16 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*   get_next_line_bonus.c                              :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: sguan <sguan@student.42.fr>                +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/12/06 15:59:35 by sguan             #+#    #+#             */
-/*   Updated: 2024/12/17 21:27:17 by sguan            ###   ########.fr       */
+/*   Created: 2024/12/17 19:29:55 by sguan             #+#    #+#             */
+/*   Updated: 2024/12/17 21:35:39 by sguan            ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "get_next_line.h"
+#include "get_next_line_bonus.h"
 
 static int	check_newline(char *buffer)
 {
@@ -86,30 +86,30 @@ static char	*read_and_process(int fd, char **leftover)
 
 char	*get_next_line(int fd)
 {
-	static char	*leftover;
+	static char	*leftover[FOPEN_MAX];
 	char		*line;
 	int			newline_index;
 
-	if (fd < 0 || BUFFER_SIZE <= 0)
+	if (fd < 0 || fd > FOPEN_MAX || BUFFER_SIZE <= 0)
 		return (NULL);
-	if (leftover)
+	if (leftover[fd])
 	{
-		newline_index = check_newline(leftover);
+		newline_index = check_newline(leftover[fd]);
 		if (newline_index >= 0)
-			return (extract_line(&leftover, newline_index));
+			return (extract_line(&leftover[fd], newline_index));
 	}
-	line = read_and_process(fd, &leftover);
+	line = read_and_process(fd, &leftover[fd]);
 	if (line)
 		return (line);
-	if (leftover && *leftover)
+	if (leftover[fd] && *leftover[fd])
 	{
-		line = ft_strdup(leftover);
-		free(leftover);
-		leftover = NULL;
+		line = ft_strdup(leftover[fd]);
+		free(leftover[fd]);
+		leftover[fd] = NULL;
 		return (line);
 	}
-	free(leftover);
-	leftover = NULL;
+	free(leftover[fd]);
+	leftover[fd] = NULL;
 	return (NULL);
 }
 
@@ -118,7 +118,8 @@ char	*get_next_line(int fd)
 
 //int	main(void)
 //{
-//	int	fd = open("test.txt", O_RDONLY);
+//	int	fd1 = open("test1.txt", O_RDONLY);
+//	int fd2 = open("test2.txt", O_RDONLY);
 //	char	*line;
 //	int		i;
 
@@ -126,15 +127,22 @@ char	*get_next_line(int fd)
 //	line = (char *)1;
 //	while (line)
 //	{
-//		line = get_next_line(fd);
+//		line = get_next_line(fd1);
 //		if (line)
+//		{
 //			printf("%s", line);
-//		free(line);
-//		line = NULL;
+//			free(line);
+//		}
+//		line = get_next_line(fd2);
+//		if (line)
+//		{
+//			printf("%s", line);
+//			free(line);
+//		}
 //		i++;
 //	}
 //	if (line)
 //		free(line);
-
-//	close(fd);
+//	close(fd1);
+//	close(fd2);
 //}
